@@ -14,15 +14,19 @@ namespace Kogane
         IPreprocessBuildWithReport,
         IPostprocessBuildWithReport
     {
+        private bool m_isCompleted;
+
         int IOrderedCallback.callbackOrder => CallbackOrder;
 
         void IPreprocessBuildWithReport.OnPreprocessBuild( BuildReport report )
         {
+            m_isCompleted = false;
+
             void OnUpdate()
             {
                 if ( BuildPipeline.isBuildingPlayer ) return;
                 EditorApplication.update -= OnUpdate;
-                OnComplete();
+                Complete();
             }
 
             EditorApplication.update += OnUpdate;
@@ -32,6 +36,14 @@ namespace Kogane
         void IPostprocessBuildWithReport.OnPostprocessBuild( BuildReport report )
         {
             OnSuccess( report );
+            Complete();
+        }
+
+        private void Complete()
+        {
+            if ( m_isCompleted ) return;
+            m_isCompleted = true;
+            OnComplete();
         }
 
         protected virtual int CallbackOrder => 0;
